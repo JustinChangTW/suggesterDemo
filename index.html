@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #dropdown {
+            position: fixed;
+            display: none;
+            top: 30px;
+            left: 10px;
+            /* height: 10px; */
+            /* width: 10px; */
+            border: 2px solid #000;
+        }
+        
+        #clone {
+            position: absolute;
+            display: inline-block;
+            border: 1px solid;
+            box-sizing: border-box;
+            word-break: break-all;
+            font-size: 14px;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            overflow: hidden;
+            visibility: hidden;
+            z-index: -10000;
+        }
+        
+        span {
+            background-color: #aaa;
+        }
+        
+        #text {
+            /* display: bo; */
+            border: 1px solid;
+            width: 100px;
+            height: 200px;
+            font-size: 14px;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+        
+        .action {
+            background-color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <textarea name="text" id="text" cols="30" rows="10" style="width:200px;height:200px;"></textarea>
+    <div id="clone"><span name="text"></span> <span name="focus"></span></div>
+    <div id="dropdown">
+        <div class='action' data-value='Aliex'>Aliex</div>
+        <div data-value='Eric'>Eric</div>
+        <div data-value='Justin'>Justin</div>
+        <div data-value='Milo'>Milo</div>
+    </div>
+
+    <script>
+        var text = document.querySelector("#text")
+        var clone = document.querySelector("#clone")
+        var span = document.querySelector("#clone > span[name=text]")
+        var focus = document.querySelector("span[name=focus]")
+
+        text.addEventListener('keydown', x => {
+            switch (x.key) {
+                case 'ArrowUp':
+                case 'ArrowDown':
+                case 'Enter':
+                    x.preventDefault()
+                    x.stopPropagation()
+                    break;
+            }
+        })
+        text.addEventListener('keyup', x => {
+            //syncSize
+            clone.style.width = text.clientWidth + 'px'
+            clone.style.top = text.offsetTop + 'px'
+            clone.style.left = text.offsetLeft + 'px'
+
+            //key control
+            switch (x.key) {
+                case '.':
+                    suggest(x.target)
+                    break;
+                case 'ArrowUp':
+                case 'ArrowDown':
+
+                    var item = Array.from(dropdown.childNodes).filter(x => x.nodeType === 1)
+                    var arrow = x.key == 'ArrowDown' ? 1 : -1
+                    var start = x.key == 'ArrowDown' ? 0 : item.length - 1
+                    var findFlag = false
+                    for (var i = start; i < item.length && i >= 0; i = i + arrow) {
+                        if (item[i].className == 'action') {
+                            item[i].className = ""
+                            var next = ((i + arrow) < 0 ? item.length - 1 : i + arrow) % (item.length)
+                            item[next].className = "action"
+                            findFlag = true
+                            break;
+                        }
+                    }
+                    if (!findFlag) item[0].className = "action"
+                    break;
+                case 'Enter':
+                    if (dropdown.style.display != 'none') {
+                        var item = Array.from(dropdown.childNodes).filter(x => x.className === 'action')
+                        var value = item[0].dataset.value
+                        item[0].className = ""
+                        var oldValue = x.target.value
+                        var newValue = oldValue.substring(0, x.target.selectionStart) + value + oldValue.substr(x.target.selectionStart, oldValue.length - x.target.selectionStart)
+                        x.target.value = newValue
+                    }
+                case 'Escape':
+                    dropdown.style.display = 'none'
+                    break;
+            }
+        })
+
+        var suggest = function(target) {
+            span.innerText = target.value.substring(0, target.selectionStart)
+            focusPoint = getPoint(focus)
+            dropdown.style.left = focusPoint.left + 'px';
+            dropdown.style.top = span.offsetHeight + 8 - (target.scrollTop || 0) + 'px'
+            dropdown.style.display = 'block'
+        }
+
+        var getPoint = function(dom) {
+            var box = dom.getBoundingClientRect()
+            var doc = dom.ownerDocument
+            var body = doc.body
+            var docElem = doc.documentElement
+            var clientTop = docElem.clientTop || body.clientTop || 0
+            var clientLeft = docElem.clientLeft || body.clientLeft || 0
+            var top = box.top + (self.pageYOffset || docElem.scrollTop) - clientTop
+            var left = box.left + (self.pageXOffset || docElem.scrollLeft) - clientLeft
+            return {
+                left: left,
+                top: top,
+                right: left + box.width,
+                bottom: top + box.height
+            };
+        }
+    </script>
+</body>
+
+</html>
