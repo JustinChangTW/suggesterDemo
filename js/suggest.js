@@ -10,6 +10,7 @@ function suggest(el, splits, items) {
     var dropdown = createDropdown(items)
     document.body.appendChild(dropdown)
 
+    var options = []
     input.addEventListener('keydown', x => {
         switch (x.key) {
             case 'ArrowUp':
@@ -33,7 +34,7 @@ function suggest(el, splits, items) {
         var styles = window.getComputedStyle(x.target, null)
         clone.style.fontSize = styles.fontSize
         clone.style.fontFamily = styles.fontFamily
-        var options = []
+
         if (splits.some(y => y == x.key)) {
             options = getOption(x.target.value.substring(0, x.target.selectionStart), x.key, splits, items)
             appendOption(options)
@@ -43,7 +44,7 @@ function suggest(el, splits, items) {
             switch (x.key) {
                 case 'ArrowUp':
                 case 'ArrowDown':
-                    var item = Array.from(dropdown.childNodes).filter(x => x.nodeType === 1)
+                    var item = Array.from(dropdown.childNodes).filter(y => y.nodeType === 1)
                     var arrow = x.key == 'ArrowDown' ? 1 : -1
                     var start = x.key == 'ArrowDown' ? 0 : item.length - 1
                     var findFlag = false
@@ -64,13 +65,22 @@ function suggest(el, splits, items) {
                         var value = item[0].dataset.value
                         item[0].className = ""
                         var oldValue = x.target.value
-                        var newValue = oldValue.substring(0, x.target.selectionStart) + value + oldValue.substr(x.target.selectionStart, oldValue.length - x.target.selectionStart)
+                        var newValue = span.textContent + value + oldValue.substr(x.target.selectionStart, oldValue.length - x.target.selectionStart)
                         x.target.value = newValue
                     }
                     dropdown.style.display = 'none'
                     break;
                 case 'Escape':
                     dropdown.style.display = 'none'
+                    break;
+                default:
+                    if (dropdown.style.display != 'none'.toLowerCase) {
+                        var leftText = span.textContent
+                        var rightText = x.target.value.replace(leftText, '')
+                        console.log(rightText)
+                        appendOption(options.filter(y => y.toLowerCase().indexOf(rightText.toLowerCase()) > -1))
+                    }
+
                     break;
             }
         }
